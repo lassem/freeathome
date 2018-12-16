@@ -65,6 +65,33 @@ class FahBinarySensor(FahDevice):
         FahDevice.__init__(self, client, device_id, name)
         self.state = state
 
+class FahThermostat(FahDevice):
+    '''Free@Home thermostat '''
+    state = None
+    current_temperature = None
+    target_temperature = None
+
+    def __init__(self, client, device_id, name, temperature=None, target=None):
+        FahDevice.__init__(self, client, device_id, name)
+        self.current_temperature = temperature
+        self.target_temperature = target
+
+    async def turn_on(self):
+        ''' Turn the thermostat on   '''
+        await self.client.set_datapoint(self.device_id, 'idp0011', '0')
+        await self.client.set_datapoint(self.device_id, 'idp0012', '1')
+
+    async def turn_off(self):
+        ''' Turn the thermostat off   '''
+        await self.client.set_datapoint(self.device_id, 'idp0012', '0')
+
+    async def eco_mode(self):
+        ''' Put the thermostat in eco mode   '''
+        await self.client.set_datapoint(self.device_id, 'idp0011', '2')
+
+    async def set_target_temperature(self, temperature):
+        await self.client.set_datapoint(self.device_id, 'idp0016', '%.2f' % temperature)
+
 class FahLight(FahDevice):
     ''' Free@Home light object   '''
     state = None
@@ -211,12 +238,14 @@ class Client(slixmpp.ClientXMPP):
     connect_finished = False
     authenticated = False
     use_room_names = False
+    locale = 'de'
 
     # The specific devices
     binary_devices = {}
     light_devices = {}
     scene_devices = {}
     cover_devices = {}
+    thermostat_devices = {}
 
     switch_type_1 = {
         '1' : [0],    # Normal switch  (channel 0)
@@ -230,13 +259,24 @@ class Client(slixmpp.ClientXMPP):
         '4' : [1, 2, 4, 5] # Left impuls, right impuls (channel 1,2,4,5)
         }
 
-    def __init__(self, jid, password):
+    def __init__(self, jid, password, locale):
         ''' x   '''
         slixmpp.ClientXMPP.__init__(self, jid, password)
 
+        self.auto_authorize = True
+        self.auto_subscribe = True
+        self.is_component = True
+
+        import os, binascii
+        self.requested_jid.resource = binascii.b2a_hex(os.urandom(4))
+
+        self.locale = locale
+
         # register plugins
         self.register_plugin('xep_0030')  # RPC
-        self.register_plugin('xep_0060') # PubSub
+        self.register_plugin('xep_0060')  # PubSub
+        self.register_plugin('xep_0199')  # Ping
+        self.register_plugin('xep_0115')  # Caps
 
         register_stanza_plugin(Iq, RPCQuery)
         register_stanza_plugin(RPCQuery, MethodCall)
@@ -252,6 +292,21 @@ class Client(slixmpp.ClientXMPP):
         self.add_event_handler("roster_update", self.roster_callback)
         self.add_event_handler("pubsub_publish", self.pub_sub_callback)
         self.add_event_handler("failed_auth", self.failed_auth)
+        # self.add_event_handler("presence_available", self.test)
+        # self.add_event_handler('roster_subscription_request', self.roster_subscription_request)
+        # self.add_event_handler('message', self.echo)
+
+    def echo(self, msg):
+        LOG.info('echo')
+        # msg.send()
+
+    def roster_subscription_request(self, pres):
+        LOG.info('roster_subscription_request')
+        self.send_presence(pto=pres['from'], ptype='subscribed')
+
+    # def test(self, event):
+    #     LOG.info("CRAP")
+    #     self.send_presence(pto=event['from'], ptype='subscribed')
 
     def connect_ready(self):
         ''' Polling if the connection process is ready   '''
@@ -263,16 +318,18 @@ class Client(slixmpp.ClientXMPP):
         # The connect has succeeded
         self.authenticated = True
 
+        LOG.info('get roster')
+        self.get_roster()
+
         LOG.info('send presence')
         self.send_presence()
 
-        self.send_presence_subscription(pto="mrha@busch-jaeger.de/rpc", pfrom=self.boundjid.full)
+        LOG.info('send presence subscription')
+        self.send_presence(pto="mrha@busch-jaeger.de/rpc", ptype='subscribe', pfrom=self.boundjid.bare)
 
-        self.send('<presence xmlns="jabber:client"><c xmlns="http://jabber.org/protocol/caps"'
-                  ' ver="1.0" node="http://gonicus.de/caps"/></presence>')
+        LOG.info('send presence')
+        self.send_presence(pfrom=self.boundjid.bare, ptype='available', pshow=True)
 
-        LOG.info('get roster')
-        self.get_roster()
 
     def failed_auth(self, event):
         ''' If the password in the config is wrong  '''
@@ -321,6 +378,9 @@ class Client(slixmpp.ClientXMPP):
         if device_type == 'binary_sensor':
             return_type = self.binary_devices
 
+        if device_type == 'thermostat':
+            return_type = self.thermostat_devices
+
         return return_type
 
     def roster_callback(self, roster_iq):
@@ -341,6 +401,9 @@ class Client(slixmpp.ClientXMPP):
 
     def pub_sub_callback(self, msg):
         ''' Process the device update messages of the sysap   '''
+
+        LOG.info(msg)
+
         # pylint: disable=too-many-nested-blocks
         if msg['pubsub_event']['items']['item']['update']['data'] is not None:
 
@@ -370,8 +433,13 @@ class Client(slixmpp.ClientXMPP):
                             if device_id in self.cover_devices:
                                 self.update_cover(device_id, channel)
 
+                            # if the device is a switch etc.
                             if device_id in self.binary_devices:
                                 self.update_binary(device_id, channel)
+
+                            # if the device is a thermostat
+                            if device_id in self.thermostat_devices:
+                                self.update_thermostat(device_id, channel)
 
     def update_light(self, device_id, channel):
         ''' Update status of light devices   '''
@@ -410,6 +478,18 @@ class Client(slixmpp.ClientXMPP):
         if binary_state is not None:
             self.binary_devices[device_id].state = binary_state
             LOG.info("binary device %s is %s", device_id, binary_state)
+
+    def update_thermostat(self, device_id, channel):
+        ''' Update the status of thermostat devices '''
+        current_temp_state = get_output_datapoint(channel, 'odp0010')
+        if current_temp_state is not None:
+            self.thermostat_devices[device_id].current_temperature = current_temp_state
+            LOG.info("thermostat device %s current temp is %s", device_id, current_temp_state)
+
+        target_temp_state = get_output_datapoint(channel, 'odp0006')
+        if target_temp_state is not None:
+            self.thermostat_devices[device_id].target_temperature = target_temp_state
+            LOG.info("thermostat device %s target temp is %s", device_id, target_temp_state)
 
 
     def add_light_device(self, xmlroot, serialnumber, roomnames):
@@ -603,11 +683,34 @@ class Client(slixmpp.ClientXMPP):
         self.binary_devices[button_device] = FahBinarySensor(self, button_device, button_name)
         LOG.info('movement sensor %s %s ', button_device, button_name)
 
+    def add_thermostat(self, xmlroot, serialnumber, roomnames):
+        ''' Add a thermostat to the list of thermostat devices '''
+        button_basename = get_attribute(xmlroot, 'displayName')
+        floor_id = get_attribute(xmlroot, 'floor')
+        room_id = get_attribute(xmlroot, 'room')
+
+        button_device = serialnumber + '/' + 'ch0000'
+        if floor_id != '' and room_id != '' and self.use_room_names:
+            button_name = button_basename + ' (' + roomnames[floor_id][room_id] + ')'
+        else:
+            button_name = button_basename
+
+        channels = xmlroot.find('channels')
+        if channels is not None:
+            for channel in channels.findall('channel'):
+                target_temperature = get_output_datapoint(channel, 'odp0006')
+                current_temperature = get_output_datapoint(channel, 'odp0010')
+
+        self.thermostat_devices[button_device] = FahThermostat(self, button_device, button_name,
+                                                               temperature=current_temperature,
+                                                               target=target_temperature)
+        LOG.info('thermostat %s %s ', button_device, button_name)
+
     async def find_devices(self, use_room_names):
         ''' Find the devices in the system, this is a big XML file   '''
         self.use_room_names = use_room_names
 
-        my_iq = await self.send_rpc_iq('RemoteInterface.getAll', 'de', 4, 0, 0)
+        my_iq = await self.send_rpc_iq('RemoteInterface.getAll', self.locale, 4, 0, 0)
 
         my_iq.enable('rpc_query')
 
@@ -651,13 +754,16 @@ class Client(slixmpp.ClientXMPP):
 
                 # Switch actuators
                 if (device_id == 'B002' or device_id == '100E' or device_id == 'B008' or \
+                    device_id == '900C' or device_id == '9010' or device_id == '4000' or \
                     device_id == '10C4' or device_id == '100C' or device_id == '1010'):
                     self.add_light_device(neighbor, serialnumber, roomnames)
 
                 # Dimming actuators
                 # Hue Aktor (LED Strip), Sensor/dimaktor 1/1-voudig
-                if (device_id == '101C' or  device_id == '1021' or \
-                   device_id == '10C0' or device_id == '1017'):
+                if (device_id == '101C' or device_id == '1021' or \
+                    device_id == '1014' or device_id == '901c' or \
+                    device_id == '9017' or device_id == '9019' or \
+                    device_id == '10C0' or device_id == '1017'):
                     self.add_dimmer_device(neighbor, serialnumber, roomnames)
 
                 # Scene or Timer
@@ -665,7 +771,8 @@ class Client(slixmpp.ClientXMPP):
                     self.add_scene(neighbor, serialnumber, roomnames)
 
                 # blind/cover device
-                if device_id == 'B001' or device_id == '1013' or device_id == '1015':
+                if (device_id == 'B001' or device_id == '1013' or device_id == '1015' or \
+                    device_id == '9013' or device_id == '9015' or device_id == '4001'):
                     self.add_cover_device(neighbor, serialnumber, roomnames)
 
                 # Sensor units 1/2 way
@@ -677,8 +784,12 @@ class Client(slixmpp.ClientXMPP):
                     self.add_binary_sensor(neighbor, serialnumber, roomnames)
 
                 # movement detector
-                if device_id == '100A':
+                if device_id == '100A' or device_id == '9008' or device_id == '900A':
                     self.add_movement_detector(neighbor, serialnumber, roomnames)
+
+                # thermostat
+                if device_id == '1004' or device_id == '9004':
+                    self.add_thermostat(neighbor, serialnumber, roomnames)
 
 class FreeAtHomeSysApp(object):
     """"  This class connects to the Busch Jeager Free @ Home sysapp
@@ -698,6 +809,7 @@ class FreeAtHomeSysApp(object):
         self._password = password
         self.xmpp = None
         self._use_room_names = False
+        self._locale = 'de'
 
     @property
     def use_room_names(self):
@@ -723,6 +835,7 @@ class FreeAtHomeSysApp(object):
             LOG.error('Free@Home: server %s not found ', self._host)
 
         if data is not None:
+            self._locale = data['flags']['locale'] # todo fix side effect
             usernames = data['users']
             for key in usernames:
                 if key['name'] == self._user:
@@ -740,7 +853,7 @@ class FreeAtHomeSysApp(object):
 
         if self._jid is not None:
             # create xmpp client
-            self.xmpp = Client(self._jid, self._password)
+            self.xmpp = Client(self._jid, self._password, self._locale)
             # connect
             self.xmpp.connect((self._host, self._port))
 
@@ -758,7 +871,7 @@ class FreeAtHomeSysApp(object):
 
     async def find_devices(self):
         ''' find all the devices on the sysap   '''
-        try:
-            await self.xmpp.find_devices(self._use_room_names)
-        except IqError as error:
-            raise error
+        # try:
+        #     await self.xmpp.find_devices(self._use_room_names)
+        # except IqError as error:
+        #     raise error

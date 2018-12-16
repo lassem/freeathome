@@ -1,5 +1,5 @@
 ''' Main Home Assistant interface Free@Home '''
-import  logging
+import logging
 import voluptuous as vol
 from homeassistant.helpers.discovery import load_platform
 from homeassistant.const import CONF_HOST, CONF_USERNAME, CONF_PASSWORD, CONF_PORT
@@ -27,6 +27,7 @@ CONFIG_SCHEMA = vol.Schema({
 
 _LOGGER = logging.getLogger(__name__)
 
+
 async def async_setup(hass, base_config):
     """ Setup of the Free@Home interface for Home Assistant ."""
     import custom_components.pfreeathome as pfreeathome
@@ -53,6 +54,7 @@ async def async_setup(hass, base_config):
         load_platform(hass, 'scene', DOMAIN, {}, config)
         load_platform(hass, 'cover', DOMAIN, {}, config)
         load_platform(hass, 'binary_sensor', DOMAIN, {}, config)
+        load_platform(hass, 'climate', DOMAIN, {}, config)
 
         return True
 
