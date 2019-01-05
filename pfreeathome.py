@@ -263,10 +263,6 @@ class Client(slixmpp.ClientXMPP):
         ''' x   '''
         slixmpp.ClientXMPP.__init__(self, jid, password)
 
-        self.auto_authorize = True
-        self.auto_subscribe = True
-        self.is_component = True
-
         import os, binascii
         self.requested_jid.resource = binascii.b2a_hex(os.urandom(4))
 
@@ -292,21 +288,6 @@ class Client(slixmpp.ClientXMPP):
         self.add_event_handler("roster_update", self.roster_callback)
         self.add_event_handler("pubsub_publish", self.pub_sub_callback)
         self.add_event_handler("failed_auth", self.failed_auth)
-        # self.add_event_handler("presence_available", self.test)
-        # self.add_event_handler('roster_subscription_request', self.roster_subscription_request)
-        # self.add_event_handler('message', self.echo)
-
-    def echo(self, msg):
-        LOG.info('echo')
-        # msg.send()
-
-    def roster_subscription_request(self, pres):
-        LOG.info('roster_subscription_request')
-        self.send_presence(pto=pres['from'], ptype='subscribed')
-
-    # def test(self, event):
-    #     LOG.info("CRAP")
-    #     self.send_presence(pto=event['from'], ptype='subscribed')
 
     def connect_ready(self):
         ''' Polling if the connection process is ready   '''
@@ -318,17 +299,17 @@ class Client(slixmpp.ClientXMPP):
         # The connect has succeeded
         self.authenticated = True
 
-        LOG.info('get roster')
-        self.get_roster()
-
         LOG.info('send presence')
         self.send_presence()
 
         LOG.info('send presence subscription')
-        self.send_presence(pto="mrha@busch-jaeger.de/rpc", ptype='subscribe', pfrom=self.boundjid.bare)
+        self.send_presence_subscription(pto="mrha@busch-jaeger.de/rpc", pfrom=self.boundjid.full)
 
-        LOG.info('send presence')
-        self.send_presence(pfrom=self.boundjid.bare, ptype='available', pshow=True)
+        self.send('<presence xmlns="jabber:client"><c xmlns="http://jabber.org/protocol/caps"'
+                  ' ver="1.0" node="http://gonicus.de/caps"/></presence>')
+
+        LOG.info('get roster')
+        self.get_roster()
 
 
     def failed_auth(self, event):
@@ -401,9 +382,6 @@ class Client(slixmpp.ClientXMPP):
 
     def pub_sub_callback(self, msg):
         ''' Process the device update messages of the sysap   '''
-
-        LOG.info(msg)
-
         # pylint: disable=too-many-nested-blocks
         if msg['pubsub_event']['items']['item']['update']['data'] is not None:
 
@@ -871,7 +849,7 @@ class FreeAtHomeSysApp(object):
 
     async def find_devices(self):
         ''' find all the devices on the sysap   '''
-        # try:
-        #     await self.xmpp.find_devices(self._use_room_names)
-        # except IqError as error:
-        #     raise error
+        try:
+            await self.xmpp.find_devices(self._use_room_names)
+        except IqError as error:
+            raise error

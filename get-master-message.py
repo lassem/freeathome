@@ -66,20 +66,21 @@ class Client(slixmpp.ClientXMPP):
         self.add_event_handler("roster_update_complete", self.roster_callback)
         self.add_event_handler("pubsub_publish", self.pub_sub_callback)
 
-        # import ssl
-        # self.ssl_version = ssl.PROTOCOL_SSLv3
 
+    @asyncio.coroutine
     def start(self, event):
 
         log.debug("begin session start")
 
-        self.presence_and_roster()
+        yield from self.presence_and_roster()
 
-        self.rpc()
+        yield from self.rpc()
 
         # Opbouwen van de parameters
         log.debug("Test start ")
 
+
+    @asyncio.coroutine
     def presence_and_roster(self):
 
         log.debug("begin p en r")
@@ -89,11 +90,10 @@ class Client(slixmpp.ClientXMPP):
 
         self.send_presence_subscription(pto="mrha@busch-jaeger.de/rpc", pfrom=self.boundjid.full)
 
-        self.send(
-            '<presence xmlns="jabber:client"><c xmlns="http://jabber.org/protocol/caps" ver="1.0" node="http://gonicus.de/caps"/></presence>')
+        self.send('<presence xmlns="jabber:client"><c xmlns="http://jabber.org/protocol/caps" ver="1.0" node="http://gonicus.de/caps"/></presence>')
 
         try:
-            self.get_roster()
+            yield from self.get_roster()
         except IqError as e:
             raise e
 
@@ -116,7 +116,7 @@ class Client(slixmpp.ClientXMPP):
         log.debug("rpc")
 
         try:
-            self.send_rpc_iq(callback=self.rpc_callback)
+            yield from self.send_rpc_iq(callback=self.rpc_callback)
         except IqError as e:
             raise e
 
@@ -277,9 +277,9 @@ def main():
     # set up logging
     logging.basicConfig(level=logging.INFO, format='%(levelname)-8s %(message)s')
 
-    username = 'installer@busch-jaeger.de'
-    password = '12345'
-    ipadress = '192.168.10.215'
+    username = ''
+    password = ''
+    ipadress = ''
 
     # create xmpp client
     xmpp = Client(username, password)
