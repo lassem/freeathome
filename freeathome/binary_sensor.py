@@ -11,7 +11,7 @@ _LOGGER = logging.getLogger(__name__)
 
 async def async_setup_platform(hass, config, add_devices, discovery_info=None):
     """ setup """
-    import custom_components.pfreeathome
+    import custom_components.freeathome.pfreeathome
 
     _LOGGER.info('FreeAtHome setup binary sensor')
 

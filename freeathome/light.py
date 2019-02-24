@@ -13,7 +13,7 @@ _LOGGER = logging.getLogger(__name__)
 # as passed in above. 'light' will receive discovery_info=None
 async def async_setup_platform(hass, config, add_devices, discovery_info=None):
     """ switch/light specific code."""
-    import custom_components.pfreeathome
+    import custom_components.freeathome.pfreeathome
 
     _LOGGER.info('FreeAtHome setup light')
 

@@ -30,7 +30,7 @@ _LOGGER = logging.getLogger(__name__)
 
 async def async_setup(hass, base_config):
     """ Setup of the Free@Home interface for Home Assistant ."""
-    import custom_components.pfreeathome as pfreeathome
+    import custom_components.freeathome.pfreeathome as pfreeathome
 
     config = base_config.get(DOMAIN)
 
