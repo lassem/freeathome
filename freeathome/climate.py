@@ -2,11 +2,12 @@
 
 import logging
 from homeassistant.components.climate import (
-    PLATFORM_SCHEMA, SUPPORT_OPERATION_MODE, SUPPORT_TARGET_TEMPERATURE,
-    SUPPORT_ON_OFF, STATE_ECO, STATE_ON, STATE_OFF, STATE_AUTO,
-    ClimateDevice)
+    PLATFORM_SCHEMA, ClimateDevice)
+from homeassistant.components.climate.const import (
+    SUPPORT_OPERATION_MODE, SUPPORT_TARGET_TEMPERATURE,
+    SUPPORT_ON_OFF, STATE_ECO, STATE_AUTO)
 from homeassistant.const import (
-    ATTR_TEMPERATURE, TEMP_CELSIUS, DEVICE_CLASS_TEMPERATURE)
+    ATTR_TEMPERATURE, TEMP_CELSIUS, DEVICE_CLASS_TEMPERATURE, STATE_ON, STATE_OFF)
 
 import custom_components.freeathome as freeathome
 
