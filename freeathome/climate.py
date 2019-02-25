@@ -1,14 +1,15 @@
 """ Support for Free@Home thermostats """
 
 import logging
-from homeassistant.components.climate import ClimateDevice
-from homeassistant.components.climate.const import (
-    SUPPORT_OPERATION_MODE, SUPPORT_TARGET_TEMPERATURE,
-    SUPPORT_ON_OFF, STATE_ECO, STATE_AUTO)
-from homeassistant.const import (
-    ATTR_TEMPERATURE, TEMP_CELSIUS, DEVICE_CLASS_TEMPERATURE, STATE_ON, STATE_OFF)
 
 import custom_components.freeathome as freeathome
+from homeassistant.components.climate import ClimateDevice
+from homeassistant.components.climate.const import (STATE_AUTO, STATE_ECO,
+                                                    SUPPORT_ON_OFF,
+                                                    SUPPORT_OPERATION_MODE,
+                                                    SUPPORT_TARGET_TEMPERATURE)
+from homeassistant.const import (ATTR_TEMPERATURE, DEVICE_CLASS_TEMPERATURE,
+                                 STATE_OFF, STATE_ON, TEMP_CELSIUS)
 
 REQUIREMENTS = ['slixmpp==1.4.2']
 

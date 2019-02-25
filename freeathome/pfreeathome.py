@@ -4,19 +4,20 @@
 Interface for accessing Free@Home
 '''
 import asyncio
+import json
 import logging
 import urllib.request
-import json
 import xml.etree.ElementTree as ET
-import slixmpp
-from slixmpp import Message
-from slixmpp.xmlstream import ElementBase, ET, register_stanza_plugin
-from slixmpp.plugins.xep_0009.binding import py2xml, xml2py
-from slixmpp.plugins.xep_0009.stanza.RPC import RPCQuery, MethodCall, MethodResponse
-from slixmpp.plugins.xep_0060.stanza.pubsub_event import Event, EventItems, EventItem
-from slixmpp.exceptions import IqError
-from slixmpp import Iq
 
+import slixmpp
+from slixmpp import Iq, Message
+from slixmpp.exceptions import IqError
+from slixmpp.plugins.xep_0009.binding import py2xml, xml2py
+from slixmpp.plugins.xep_0009.stanza.RPC import (MethodCall, MethodResponse,
+                                                 RPCQuery)
+from slixmpp.plugins.xep_0060.stanza.pubsub_event import (Event, EventItem,
+                                                          EventItems)
+from slixmpp.xmlstream import ET, ElementBase, register_stanza_plugin
 
 LOG = logging.getLogger(__name__)
 

@@ -1,10 +1,12 @@
 ''' Main Home Assistant interface Free@Home '''
-import voluptuous as vol
-from homeassistant.helpers.discovery import load_platform
-from homeassistant.const import CONF_HOST, CONF_USERNAME, CONF_PASSWORD, CONF_PORT
 import homeassistant.helpers.config_validation as cv
+import voluptuous as vol
+from homeassistant.const import (CONF_HOST, CONF_PASSWORD, CONF_PORT,
+                                 CONF_USERNAME)
+from homeassistant.helpers.discovery import load_platform
 
-from .const import (DOMAIN, DATA_MFH, CONF_USE_ROOM_NAMES, DEFAULT_USE_ROOM_NAMES)
+from .const import (CONF_USE_ROOM_NAMES, DATA_MFH, DEFAULT_USE_ROOM_NAMES,
+                    DOMAIN)
 from .pfreeathome import FreeAtHomeSysAp
 
 REQUIREMENTS = ['slixmpp==1.4.2']

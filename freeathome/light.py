@@ -1,9 +1,9 @@
 ''' Support for Free@Home lights dimmers '''
 import logging
-from homeassistant.components.light import (
-    ATTR_BRIGHTNESS, SUPPORT_BRIGHTNESS, Light)
 
 import custom_components.freeathome as freeathome
+from homeassistant.components.light import (ATTR_BRIGHTNESS,
+                                            SUPPORT_BRIGHTNESS, Light)
 
 REQUIREMENTS = ['slixmpp==1.4.2']
 

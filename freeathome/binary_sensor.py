@@ -1,7 +1,8 @@
 ''' Support for Free@Home Binary devices like sensors, movement detectors '''
 import logging
-from homeassistant.components.binary_sensor import (BinarySensorDevice)
+
 import custom_components.freeathome as freeathome
+from homeassistant.components.binary_sensor import BinarySensorDevice
 
 REQUIREMENTS = ['slixmpp==1.4.2']
 

@@ -1,10 +1,10 @@
 """ Support for Free@Home cover - blinds , shutters. """
 import logging
-from homeassistant.components.cover import (
-    CoverDevice, ATTR_POSITION,
-    SUPPORT_CLOSE, SUPPORT_OPEN, SUPPORT_SET_POSITION, SUPPORT_STOP
-    )
+
 import custom_components.freeathome as freeathome
+from homeassistant.components.cover import (
+    ATTR_POSITION, SUPPORT_CLOSE, SUPPORT_OPEN, SUPPORT_SET_POSITION,
+    SUPPORT_STOP, CoverDevice)
 
 REQUIREMENTS = ['slixmpp==1.4.2']
 

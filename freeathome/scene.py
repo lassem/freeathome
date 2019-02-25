@@ -1,7 +1,8 @@
 """ Support for Free@Home scenes. """
 import logging
-from homeassistant.components.scene import Scene
+
 import custom_components.freeathome as freeathome
+from homeassistant.components.scene import Scene
 
 REQUIREMENTS = ['slixmpp==1.4.2']
 
