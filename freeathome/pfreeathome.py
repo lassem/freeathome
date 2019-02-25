@@ -782,9 +782,9 @@ class Client(slixmpp.ClientXMPP):
 
 
 class FreeAtHomeSysAp(object):
-    """"  This class connects to the Busch Jeager Free @ Home sysapp
+    """"  This class connects to the Busch Jeager Free @ Home SysAp
           parameters in configuration.yaml
-          host       - Ip adress of the sysapp device
+          host       - Ip adress of the SysAp device
           username
           password
           use_room_names - Show room names with the devices
