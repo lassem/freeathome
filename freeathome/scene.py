@@ -7,10 +7,9 @@ REQUIREMENTS = ['slixmpp==1.4.2']
 
 _LOGGER = logging.getLogger(__name__)
 
+
 async def async_setup_platform(hass, config, add_devices, discovery_info=None):
     ''' scene specific code '''
-    import custom_components.freeathome.pfreeathome
-
     _LOGGER.info('FreeAtHome setup scenes')
 
     fah = hass.data[freeathome.DATA_MFH]
@@ -19,6 +18,7 @@ async def async_setup_platform(hass, config, add_devices, discovery_info=None):
 
     for device, device_object in devices.items():
         add_devices([FreeAtHomeScene(device_object)])
+
 
 class FreeAtHomeScene(Scene):
     """ Free@home scene """

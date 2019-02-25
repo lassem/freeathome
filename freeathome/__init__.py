@@ -5,6 +5,8 @@ from homeassistant.helpers.discovery import load_platform
 from homeassistant.const import CONF_HOST, CONF_USERNAME, CONF_PASSWORD, CONF_PORT
 import homeassistant.helpers.config_validation as cv
 
+from .pfreeathome import FreeAtHomeSysApp
+
 REQUIREMENTS = ['slixmpp==1.4.2']
 
 DOMAIN = 'freeathome'
@@ -30,8 +32,6 @@ _LOGGER = logging.getLogger(__name__)
 
 async def async_setup(hass, base_config):
     """ Setup of the Free@Home interface for Home Assistant ."""
-    import custom_components.freeathome.pfreeathome as pfreeathome
-
     config = base_config.get(DOMAIN)
 
     host = config.get(CONF_HOST)
@@ -39,7 +39,7 @@ async def async_setup(hass, base_config):
     username = config.get(CONF_USERNAME)
     password = config.get(CONF_PASSWORD)
 
-    sysap = pfreeathome.FreeAtHomeSysApp(host, port, username, password)
+    sysap = FreeAtHomeSysApp(host, port, username, password)
     sysap.use_room_names = config.get(CONF_USE_ROOM_NAMES)
     sysap.connect()
 

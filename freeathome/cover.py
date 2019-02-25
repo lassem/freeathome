@@ -12,8 +12,6 @@ _LOGGER = logging.getLogger(__name__)
 
 async def async_setup_platform(hass, config, add_devices, discovery_info=None):
     """ cover specific code."""
-    import custom_components.freeathome.pfreeathome
-
     _LOGGER.info('FreeAtHome setup cover')
 
     fah = hass.data[freeathome.DATA_MFH]

@@ -1,8 +1,7 @@
 """ Support for Free@Home thermostats """
 
 import logging
-from homeassistant.components.climate import (
-    PLATFORM_SCHEMA, ClimateDevice)
+from homeassistant.components.climate import ClimateDevice
 from homeassistant.components.climate.const import (
     SUPPORT_OPERATION_MODE, SUPPORT_TARGET_TEMPERATURE,
     SUPPORT_ON_OFF, STATE_ECO, STATE_AUTO)
@@ -18,8 +17,6 @@ _LOGGER = logging.getLogger(__name__)
 
 async def async_setup_platform(hass, config, add_devices, discovery_info=None):
     """ thermostat specific code."""
-    import custom_components.freeathome.pfreeathome
-
     _LOGGER.info('FreeAtHome setup thermostat')
 
     fah = hass.data[freeathome.DATA_MFH]

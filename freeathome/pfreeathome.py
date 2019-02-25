@@ -20,12 +20,14 @@ from slixmpp import Iq
 
 LOG = logging.getLogger(__name__)
 
+
 class ItemUpdate(ElementBase):
     ''' part of the xml message  '''
     namespace = 'http://abb.com/protocol/update'
     name = 'update'
     plugin_attrib = name
     interfaces = set(('data'))
+
 
 def data2py(update):
     ''' Convert xml to  a list of args '''
@@ -34,6 +36,7 @@ def data2py(update):
     for data in update.xml.findall('{%s}data' % namespace):
         vals.append(data.text)
     return vals
+
 
 class FahDevice:
     ''' Free@Home base object '''
@@ -57,6 +60,7 @@ class FahDevice:
         ''' return the Client object '''
         return self._client
 
+
 class FahBinarySensor(FahDevice):
     '''Free@Home binary object '''
     state = None
@@ -64,6 +68,7 @@ class FahBinarySensor(FahDevice):
     def __init__(self, client, device_id, name, state=False):
         FahDevice.__init__(self, client, device_id, name)
         self.state = state
+
 
 class FahThermostat(FahDevice):
     '''Free@Home thermostat '''
@@ -91,6 +96,7 @@ class FahThermostat(FahDevice):
 
     async def set_target_temperature(self, temperature):
         await self.client.set_datapoint(self.device_id, 'idp0016', '%.2f' % temperature)
+
 
 class FahLight(FahDevice):
     ''' Free@Home light object   '''
@@ -134,6 +140,7 @@ class FahLight(FahDevice):
         ''' Return the state of the light   '''
         return self.state
 
+
 class FahLightScene(FahDevice):
     ''' Free@home scene   '''
     def __init__(self, client, device_id, name):
@@ -142,6 +149,7 @@ class FahLightScene(FahDevice):
     async def activate(self):
         ''' Activate the scene   '''
         await self.client.set_datapoint(self.device_id, 'odp0000', '1')
+
 
 class FahCover(FahDevice):
     ''' Free@Home cover device
@@ -190,6 +198,7 @@ class FahCover(FahDevice):
         if  (self.state == '2') or  (self.state == '3'):
             await self.client.set_datapoint(self.device_id, 'idp0001', '1')
 
+
 def get_room_names(xmlroot):
     ''' Return the floors and rooms of the installation   '''
     floorplan = xmlroot.find('floorplan')
@@ -209,12 +218,14 @@ def get_room_names(xmlroot):
 
     return roomnames
 
+
 def get_attribute(xmlnode, name):
     ''' Return an attribute value (xml)   '''
     for attributes in xmlnode.findall('attribute'):
         if attributes.get('name') == name:
             return attributes.text
     return ''
+
 
 def get_input_datapoint(xmlnode, input_name):
     ''' Return an input point value (xml)   '''
@@ -224,6 +235,7 @@ def get_input_datapoint(xmlnode, input_name):
             return datapoints.find('value').text
     return None
 
+
 def get_output_datapoint(xmlnode, output_name):
     ''' Return an output point value (xml)   '''
     outputs = xmlnode.find('outputs')
@@ -231,6 +243,7 @@ def get_output_datapoint(xmlnode, output_name):
         if datapoints.get('i') == output_name:
             return datapoints.find('value').text
     return None
+
 
 class Client(slixmpp.ClientXMPP):
     ''' Client for connecting to the free@home sysap   '''
@@ -311,7 +324,6 @@ class Client(slixmpp.ClientXMPP):
         LOG.info('get roster')
         self.get_roster()
 
-
     def failed_auth(self, event):
         ''' If the password in the config is wrong  '''
         LOG.error('Free@Home : authentication failed, probably wrong password')
@@ -340,7 +352,6 @@ class Client(slixmpp.ClientXMPP):
         my_iq['rpc_query']['method_call']['params'] = py2xml(*argv)
 
         return my_iq.send(timeout=timeout, callback=callback, timeout_callback=timeout_callback)
-
 
     def get_devices(self, device_type):
         ''' After all the devices have been extracted from the xml file,
@@ -768,6 +779,7 @@ class Client(slixmpp.ClientXMPP):
                 # thermostat
                 if device_id == '1004' or device_id == '9004':
                     self.add_thermostat(neighbor, serialnumber, roomnames)
+
 
 class FreeAtHomeSysApp(object):
     """"  This class connects to the Busch Jeager Free @ Home sysapp
