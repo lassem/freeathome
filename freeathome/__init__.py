@@ -5,7 +5,7 @@ from homeassistant.const import CONF_HOST, CONF_USERNAME, CONF_PASSWORD, CONF_PO
 import homeassistant.helpers.config_validation as cv
 
 from .const import (DOMAIN, DATA_MFH, CONF_USE_ROOM_NAMES, DEFAULT_USE_ROOM_NAMES)
-from .pfreeathome import FreeAtHomeSysApp
+from .pfreeathome import FreeAtHomeSysAp
 
 REQUIREMENTS = ['slixmpp==1.4.2']
 
@@ -31,7 +31,7 @@ async def async_setup(hass, base_config):
     username = config.get(CONF_USERNAME)
     password = config.get(CONF_PASSWORD)
 
-    sysap = FreeAtHomeSysApp(host, port, username, password)
+    sysap = FreeAtHomeSysAp(host, port, username, password)
     sysap.use_room_names = config.get(CONF_USE_ROOM_NAMES)
     sysap.connect()
 

@@ -781,7 +781,7 @@ class Client(slixmpp.ClientXMPP):
                     self.add_thermostat(neighbor, serialnumber, roomnames)
 
 
-class FreeAtHomeSysApp(object):
+class FreeAtHomeSysAp(object):
     """"  This class connects to the Busch Jeager Free @ Home sysapp
           parameters in configuration.yaml
           host       - Ip adress of the sysapp device
