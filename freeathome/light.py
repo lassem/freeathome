@@ -1,20 +1,19 @@
 ''' Support for Free@Home lights dimmers '''
 import logging
-from homeassistant.components.light import (
-    ATTR_BRIGHTNESS, SUPPORT_BRIGHTNESS, Light)
 
 import custom_components.freeathome as freeathome
+from homeassistant.components.light import (ATTR_BRIGHTNESS,
+                                            SUPPORT_BRIGHTNESS, Light)
 
 REQUIREMENTS = ['slixmpp==1.4.2']
 
 _LOGGER = logging.getLogger(__name__)
 
+
 # 'switch' will receive discovery_info={'optional': 'arguments'}
 # as passed in above. 'light' will receive discovery_info=None
 async def async_setup_platform(hass, config, add_devices, discovery_info=None):
     """ switch/light specific code."""
-    import custom_components.pfreeathome
-
     _LOGGER.info('FreeAtHome setup light')
 
     fah = hass.data[freeathome.DATA_MFH]
@@ -23,6 +22,7 @@ async def async_setup_platform(hass, config, add_devices, discovery_info=None):
 
     for device, device_object in devices.items():
         add_devices([FreeAtHomeLight(device_object)])
+
 
 class FreeAtHomeLight(Light):
     ''' Free@home light '''
